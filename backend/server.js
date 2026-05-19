@@ -12,7 +12,7 @@ const app = express();
 app.use(cors({
   origin: process.env.NODE_ENV === "production"
     ? process.env.FRONTEND_URL
-    : "http://localhost:3000",
+    : ["http://localhost:3000", "http://localhost:3001"],
   credentials: true,
 }));
 app.use(express.json());
@@ -23,10 +23,20 @@ app.use("/api/auth",       require("./routes/authRoutes"));
 app.use("/api/complaints", require("./routes/complaintRoutes"));
 app.use("/api/ai",         require("./routes/aiRoutes"));
 
-// ─── Root health-check ────────────────────────────────────────────────────────
-app.get("/", (req, res) => {
-  res.json({ message: "Smart Complaint Management System API is running 🚀" });
-});
+const path = require("path");
+
+// ─── Serve Frontend in Production ──────────────────────────────────────────────
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/build")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "../frontend/build", "index.html"));
+  });
+} else {
+  // ─── Root health-check ────────────────────────────────────────────────────────
+  app.get("/", (req, res) => {
+    res.json({ message: "Smart Complaint Management System API is running 🚀" });
+  });
+}
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {

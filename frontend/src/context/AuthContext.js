@@ -11,13 +11,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      fetchMe();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
+    const initAuth = async () => {
+      if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        await fetchMe();
+      } else {
+        setLoading(false);
+      }
+    };
+    initAuth();
+  }, []);
 
   const fetchMe = async () => {
     try {
