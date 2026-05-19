@@ -17,8 +17,7 @@ export const AuthProvider = ({ children }) => {
       }
     };
     initAuth();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // eslint-disable-line
 
   const fetchMe = async () => {
     try {
