@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import API from "../utils/api";
 
 const AuthContext = createContext();
-
-const API = process.env.REACT_APP_API_URL || "/api";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser]       = useState(null);
@@ -13,39 +11,40 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       if (token) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         await fetchMe();
       } else {
         setLoading(false);
       }
     };
     initAuth();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchMe = async () => {
     try {
-      const { data } = await axios.get(`${API}/auth/me`);
+      const { data } = await API.get("/auth/me");
       setUser(data.user);
     } catch {
-      logout();
+      // token invalid/expired — clear it
+      localStorage.removeItem("token");
+      setToken(null);
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
   const login = async (email, password) => {
-    const { data } = await axios.post(`${API}/auth/login`, { email, password });
+    const { data } = await API.post("/auth/login", { email, password });
     localStorage.setItem("token", data.token);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
     setToken(data.token);
     setUser(data.user);
     return data;
   };
 
   const register = async (name, email, password) => {
-    const { data } = await axios.post(`${API}/auth/register`, { name, email, password });
+    const { data } = await API.post("/auth/register", { name, email, password });
     localStorage.setItem("token", data.token);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
     setToken(data.token);
     setUser(data.user);
     return data;
@@ -53,7 +52,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
-    delete axios.defaults.headers.common["Authorization"];
     setToken(null);
     setUser(null);
   };
